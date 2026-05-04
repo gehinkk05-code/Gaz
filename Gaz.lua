@@ -1,7 +1,7 @@
 --!optimize 2
 -- Zillow--7 GazTeam
 
-local = {}
+local Iris = {}
 
 -- ==================== CONFIG ====================
 Iris._config = {
@@ -10,7 +10,6 @@ Iris._config = {
     TextSize = 14,
     WindowBgColor = Color3.fromRGB(20, 20, 20),
     WindowBorderColor = Color3.fromRGB(60, 60, 60),
-    FrameBgColor = Color3.fromRGB(30, 30, 30),
     ButtonColor = Color3.fromRGB(45, 45, 45),
     ButtonHoveredColor = Color3.fromRGB(55, 55, 55),
     ButtonActiveColor = Color3.fromRGB(35, 35, 35),
@@ -19,103 +18,84 @@ Iris._config = {
 Iris._started = false
 Iris._connectedFunctions = {}
 Iris._widgets = {}
-Iris._states = {}
-Iris._cycleTick = 0
 
--- ==================== STATE ====================
-local State = {}
-State.__index = State
-
-function State.new(initial)
-    local self = setmetatable({}, State)
-    self.value = initial
-    self.Connected = {}
-    return self
-end
-
-function State:get() return self.value end
-function State:set(new)
-    self.value = new
-    for _, w in pairs(self.Connected) do
-        if w.UpdateState then w.UpdateState(w) end
-    end
-end
-
-function Iris.State(initial)
-    local id = "state_" .. tick() .. math.random()
-    Iris._states[id] = State.new(initial)
-    return Iris._states[id]
-end
-
--- ==================== WIDGETS ====================
+-- ==================== WIDGET SYSTEM ====================
 function Iris._Insert(widgetType, args)
     local widgetClass = Iris._widgets[widgetType]
+    if not widgetClass then return end
+    
     local widget = {
         type = widgetType,
         arguments = args or {},
     }
+    
     widget.Instance = widgetClass.Generate(widget)
     widgetClass.Update(widget)
+    
     return widget
 end
 
 -- Window
+Iris.WidgetConstructor = function(name, class)
+    Iris._widgets[name] = class
+end
+
 Iris.WidgetConstructor("Window", {
     hasChildren = true,
     Generate = function(this)
-        local gui = Instance.new("ScreenGui")
-        gui.Name = "ZillowGUI"
-        gui.ResetOnSpawn = false
+        local ScreenGui = Instance.new("ScreenGui")
+        ScreenGui.Name = "ZillowGUI"
+        ScreenGui.ResetOnSpawn = false
+        ScreenGui.Parent = Iris.parentInstance or game.Players.LocalPlayer.PlayerGui
 
-        local window = Instance.new("Frame")
-        window.Name = "Window"
-        window.Size = UDim2.new(0, 420, 0, 320)
-        window.Position = UDim2.new(0.5, -210, 0.5, -160)
-        window.BackgroundColor3 = Iris._config.WindowBgColor
-        window.BorderSizePixel = 1
-        window.BorderColor3 = Iris._config.WindowBorderColor
-        window.Parent = gui
+        local Window = Instance.new("Frame")
+        Window.Name = "Window"
+        Window.Size = UDim2.new(0, 420, 0, 320)
+        Window.Position = UDim2.new(0.5, -210, 0.5, -160)
+        Window.BackgroundColor3 = Iris._config.WindowBgColor
+        Window.BorderSizePixel = 1
+        Window.BorderColor3 = Iris._config.WindowBorderColor
+        Window.Parent = ScreenGui
 
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 6)
-        corner.Parent = window
+        local Corner = Instance.new("UICorner")
+        Corner.CornerRadius = UDim.new(0, 6)
+        Corner.Parent = Window
 
-        local titleBar = Instance.new("Frame")
-        titleBar.Name = "TitleBar"
-        titleBar.Size = UDim2.new(1, 0, 0, 34)
-        titleBar.BackgroundTransparency = 1
-        titleBar.Parent = window
+        local TitleBar = Instance.new("Frame")
+        TitleBar.Name = "TitleBar"
+        TitleBar.Size = UDim2.new(1, 0, 0, 36)
+        TitleBar.BackgroundTransparency = 1
+        TitleBar.Parent = Window
 
-        local title = Instance.new("TextLabel")
-        title.Name = "Title"
-        title.Size = UDim2.new(1, -40, 1, 0)
-        title.BackgroundTransparency = 1
-        title.Text = "Zillow"
-        title.TextColor3 = Iris._config.TextColor
-        title.TextSize = 15
-        title.Font = Enum.Font.GothamSemibold
-        title.TextXAlignment = Enum.TextXAlignment.Left
-        title.Parent = titleBar
+        local Title = Instance.new("TextLabel")
+        Title.Name = "Title"
+        Title.Size = UDim2.new(1, -50, 1, 0)
+        Title.BackgroundTransparency = 1
+        Title.Text = "Zillow"
+        Title.TextColor3 = Iris._config.TextColor
+        Title.TextSize = 15
+        Title.Font = Enum.Font.GothamSemibold
+        Title.TextXAlignment = Enum.TextXAlignment.Left
+        Title.Parent = TitleBar
 
-        local content = Instance.new("ScrollingFrame")
-        content.Name = "Content"
-        content.Position = UDim2.new(0, 8, 0, 42)
-        content.Size = UDim2.new(1, -16, 1, -50)
-        content.BackgroundTransparency = 1
-        content.BorderSizePixel = 0
-        content.ScrollBarThickness = 5
-        content.Parent = window
+        local Content = Instance.new("ScrollingFrame")
+        Content.Name = "Content"
+        Content.Position = UDim2.new(0, 10, 0, 44)
+        Content.Size = UDim2.new(1, -20, 1, -54)
+        Content.BackgroundTransparency = 1
+        Content.ScrollBarThickness = 6
+        Content.Parent = Window
 
-        local layout = Instance.new("UIListLayout")
-        layout.SortOrder = Enum.SortOrder.LayoutOrder
-        layout.Padding = UDim.new(0, 6)
-        layout.Parent = content
+        local UIListLayout = Instance.new("UIListLayout")
+        UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        UIListLayout.Padding = UDim.new(0, 8)
+        UIListLayout.Parent = Content
 
-        this.Instance = gui
-        this.Content = content
-        this.Title = title
+        this.Instance = ScreenGui
+        this.Content = Content
+        this.Title = Title
 
-        return gui
+        return ScreenGui
     end,
     Update = function(this)
         this.Title.Text = this.arguments.Title or "Window"
@@ -128,15 +108,15 @@ Iris.WidgetConstructor("Window", {
 -- Text
 Iris.WidgetConstructor("Text", {
     Generate = function()
-        local t = Instance.new("TextLabel")
-        t.BackgroundTransparency = 1
-        t.TextColor3 = Iris._config.TextColor
-        t.TextSize = Iris._config.TextSize
-        t.Font = Enum.Font.Gotham
-        t.TextXAlignment = Enum.TextXAlignment.Left
-        t.AutomaticSize = Enum.AutomaticSize.Y
-        t.Size = UDim2.new(1, 0, 0, 0)
-        return t
+        local TextLabel = Instance.new("TextLabel")
+        TextLabel.BackgroundTransparency = 1
+        TextLabel.TextColor3 = Iris._config.TextColor
+        TextLabel.TextSize = Iris._config.TextSize
+        TextLabel.Font = Enum.Font.Gotham
+        TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+        TextLabel.AutomaticSize = Enum.AutomaticSize.Y
+        TextLabel.Size = UDim2.new(1, 0, 0, 0)
+        return TextLabel
     end,
     Update = function(this)
         this.Instance.Text = this.arguments.Text or ""
@@ -146,23 +126,31 @@ Iris.WidgetConstructor("Text", {
 -- Button
 Iris.WidgetConstructor("Button", {
     Generate = function()
-        local b = Instance.new("TextButton")
-        b.Size = UDim2.new(1, 0, 0, 34)
-        b.BackgroundColor3 = Iris._config.ButtonColor
-        b.TextColor3 = Iris._config.TextColor
-        b.TextSize = Iris._config.TextSize
-        b.Font = Enum.Font.GothamSemibold
+        local Button = Instance.new("TextButton")
+        Button.Size = UDim2.new(1, 0, 0, 36)
+        Button.BackgroundColor3 = Iris._config.ButtonColor
+        Button.TextColor3 = Iris._config.TextColor
+        Button.TextSize = Iris._config.TextSize
+        Button.Font = Enum.Font.GothamSemibold
 
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 5)
-        corner.Parent = b
+        local Corner = Instance.new("UICorner")
+        Corner.CornerRadius = UDim.new(0, 5)
+        Corner.Parent = Button
 
-        b.MouseEnter:Connect(function() b.BackgroundColor3 = Iris._config.ButtonHoveredColor end)
-        b.MouseLeave:Connect(function() b.BackgroundColor3 = Iris._config.ButtonColor end)
-        b.MouseButton1Down:Connect(function() b.BackgroundColor3 = Iris._config.ButtonActiveColor end)
-        b.MouseButton1Up:Connect(function() b.BackgroundColor3 = Iris._config.ButtonHoveredColor end)
+        Button.MouseEnter:Connect(function()
+            Button.BackgroundColor3 = Iris._config.ButtonHoveredColor
+        end)
+        Button.MouseLeave:Connect(function()
+            Button.BackgroundColor3 = Iris._config.ButtonColor
+        end)
+        Button.MouseButton1Down:Connect(function()
+            Button.BackgroundColor3 = Iris._config.ButtonActiveColor
+        end)
+        Button.MouseButton1Up:Connect(function()
+            Button.BackgroundColor3 = Iris._config.ButtonHoveredColor
+        end)
 
-        return b
+        return Button
     end,
     Update = function(this)
         this.Instance.Text = this.arguments.Text or "Button"
@@ -170,30 +158,26 @@ Iris.WidgetConstructor("Button", {
 })
 
 -- ==================== INIT ====================
-function Iris.Init(parent)
+function Iris.Init()
     if Iris._started then return end
     Iris._started = true
 
-    Iris.parentInstance = parent or game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    Iris.parentInstance = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
     game:GetService("RunService").Heartbeat:Connect(function()
-        Iris._cycle()
+        for _, func in ipairs(Iris._connectedFunctions) do
+            func()
+        end
     end)
 end
 
-function Iris:Connect(func)
-    table.insert(Iris._connectedFunctions, func)
-end
-
-function Iris._cycle()
-    for _, f in ipairs(Iris._connectedFunctions) do
-        f()
-    end
+function Iris:Connect(callback)
+    table.insert(Iris._connectedFunctions, callback)
 end
 
 -- Shortcuts
-function Iris.Window(args)   return Iris._Insert("Window", args) end
-function Iris.Text(args)     return Iris._Insert("Text", args) end
-function Iris.Button(args)   return Iris._Insert("Button", args) end
+Iris.Window = function(args) return Iris._Insert("Window", args) end
+Iris.Text   = function(args) return Iris._Insert("Text", args) end
+Iris.Button = function(args) return Iris._Insert("Button", args) end
 
 return Iris
