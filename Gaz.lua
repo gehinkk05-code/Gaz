@@ -1,7 +1,7 @@
 --!optimize 2
 -- Zillow--7 GazTeam
 
-local Iris = {}
+local = {}
 
 -- ==================== CONFIG ====================
 Iris._config = {
