@@ -1586,6 +1586,19 @@ function ImGui:CreateWindow(WindowConfig)
 	SideBarPadding.PaddingRight = UDim.new(0, 4)
 	SideBarPadding.Parent = SideBar
 
+	--// Блокируем скролл сайдбара при свайпе НЕ по нему
+	SideBar.InputBegan:Connect(function(Input)
+		if Input.UserInputType == Enum.UserInputType.Touch then
+			SideBar.ScrollingEnabled = true
+		end
+	end)
+	SideBar.InputEnded:Connect(function(Input)
+		if Input.UserInputType == Enum.UserInputType.Touch then
+			SideBar.ScrollingEnabled = false
+		end
+	end)
+	SideBar.ScrollingEnabled = false -- по умолчанию скролл только по касанию сайдбара
+
 	if not WindowConfig.NoDrag then
 		ImGui:ApplyDraggable(Window, TitleBar)
 	end
