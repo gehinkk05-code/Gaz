@@ -1559,12 +1559,24 @@ function ImGui:CreateWindow(WindowConfig)
 	--// Создаём левый сайдбар вручную
 	local SideBar = Instance.new("Frame")
 	SideBar.Name = "SideBar"
-	SideBar.BackgroundTransparency = 1
+	SideBar.BackgroundColor3 = Color3.fromRGB(30, 35, 50) -- тёмный фон как на фото
+	SideBar.BackgroundTransparency = 0
 	SideBar.Size = UDim2.new(0, SideBarWidth, 1, 0)
 	SideBar.Position = UDim2.new(0, 0, 0, 0)
 	SideBar.Visible = HasTabs
 	SideBar.ZIndex = 2
 	SideBar.Parent = Body
+
+	--// Тонкий разделитель между сайдбаром и контентом
+	local SideBarDivider = Instance.new("Frame")
+	SideBarDivider.Name = "Divider"
+	SideBarDivider.BackgroundColor3 = Color3.fromRGB(60, 70, 100)
+	SideBarDivider.BackgroundTransparency = 0
+	SideBarDivider.Size = UDim2.new(0, 1, 1, 0)
+	SideBarDivider.Position = UDim2.new(1, 0, 0, 0)
+	SideBarDivider.ZIndex = 3
+	SideBarDivider.BorderSizePixel = 0
+	SideBarDivider.Parent = SideBar
 
 	--// Вертикальный layout для кнопок вкладок
 	local SideBarLayout = Instance.new("UIListLayout")
@@ -1662,7 +1674,9 @@ function ImGui:CreateWindow(WindowConfig)
 		local TabButton = ToolBar.TabButton:Clone()
 		TabButton.Name = Name
 		TabButton.Text = Name
-		TabButton.Size = UDim2.new(1, -4, 0, 28) -- фиксированная высота, ширина сайдбара
+		TabButton.Size = UDim2.new(1, 0, 0, 30) -- полная ширина сайдбара, фиксированная высота
+		TabButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- белый текст
+		TabButton.BackgroundTransparency = 1 -- прозрачный фон по умолчанию (анимация сама применится)
 		TabButton.Visible = true
 		TabButton.Parent = SideBar -- кладём в левый сайдбар
 		Config.Button = TabButton
