@@ -14,10 +14,10 @@ local ImGui = {
 		},
 		Tabs = {
 			MouseEnter = {
-				BackgroundTransparency = 0.5,
+				BackgroundTransparency = 0,
 			},
 			MouseLeave = {
-				BackgroundTransparency = 1,
+				BackgroundTransparency = 0.3,
 			} 
 		},
 		Inputs = {
@@ -1549,18 +1549,17 @@ function ImGui:CreateWindow(WindowConfig)
 	Toggle.Visible = WindowConfig.NoCollapse ~= true
 	ImGui:ApplyAnimations(Toggle.ToggleButton, "Tabs")
 
-	--// LeftSideBar — заменяем горизонтальный ToolBar на вертикальный сайдбар
-	local SideBarWidth = WindowConfig.SideBarWidth or 70
+	--// LeftSideBar
+	local SideBarWidth = WindowConfig.SideBarWidth or 65
 	local HasTabs = WindowConfig.TabsBar ~= false
 
 	local ToolBar = Content.ToolBar
-	ToolBar.Visible = false -- скрываем оригинальный горизонтальный тулбар
+	ToolBar.Visible = false
 
-	--// Создаём левый сайдбар вручную
+	--// Сайдбар — такой же тёмный фон как Body окна
 	local SideBar = Instance.new("Frame")
 	SideBar.Name = "SideBar"
-	SideBar.BackgroundColor3 = TitleBar.BackgroundColor3
-	SideBar.BackgroundTransparency = 0
+	SideBar.BackgroundTransparency = 1 -- прозрачный, цвет даёт само окно
 	SideBar.BorderSizePixel = 0
 	SideBar.Size = UDim2.new(0, SideBarWidth, 1, 0)
 	SideBar.Position = UDim2.new(0, 0, 0, 0)
@@ -1571,29 +1570,31 @@ function ImGui:CreateWindow(WindowConfig)
 	--// Тонкий разделитель справа сайдбара
 	local SideBarDivider = Instance.new("Frame")
 	SideBarDivider.Name = "Divider"
-	SideBarDivider.BackgroundColor3 = Color3.fromRGB(80, 100, 140)
-	SideBarDivider.BackgroundTransparency = 0.5
+	SideBarDivider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	SideBarDivider.BackgroundTransparency = 0.85
 	SideBarDivider.Size = UDim2.new(0, 1, 1, 0)
 	SideBarDivider.Position = UDim2.new(1, -1, 0, 0)
-	SideBarDivider.ZIndex = 3
+	SideBarDivider.ZIndex = 5
 	SideBarDivider.BorderSizePixel = 0
 	SideBarDivider.Parent = SideBar
 
-	--// Вертикальный layout для кнопок вкладок
+	--// Вертикальный layout
 	local SideBarLayout = Instance.new("UIListLayout")
 	SideBarLayout.FillDirection = Enum.FillDirection.Vertical
 	SideBarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	SideBarLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-	SideBarLayout.Padding = UDim.new(0, 1)
+	SideBarLayout.Padding = UDim.new(0, 2)
 	SideBarLayout.Parent = SideBar
 
 	local SideBarPadding = Instance.new("UIPadding")
-	SideBarPadding.PaddingTop = UDim.new(0, 3)
-	SideBarPadding.PaddingBottom = UDim.new(0, 3)
+	SideBarPadding.PaddingTop = UDim.new(0, 4)
+	SideBarPadding.PaddingBottom = UDim.new(0, 4)
+	SideBarPadding.PaddingLeft = UDim.new(0, 4)
+	SideBarPadding.PaddingRight = UDim.new(0, 4)
 	SideBarPadding.Parent = SideBar
 
 	if not WindowConfig.NoDrag then
-		ImGui:ApplyDraggable(Window, TitleBar) -- тащим только за TitleBar
+		ImGui:ApplyDraggable(Window, TitleBar)
 	end
 
 	--// Close Window 
@@ -1671,16 +1672,23 @@ function ImGui:CreateWindow(WindowConfig)
 	function WindowConfig:CreateTab(Config)
 		local Name = Config.Name or ""
 
-		--// Создаём кнопку вкладки в SideBar (а не в ToolBar)
+		--// Кнопка вкладки в SideBar
 		local TabButton = ToolBar.TabButton:Clone()
 		TabButton.Name = Name
 		TabButton.Text = Name
-		TabButton.Size = UDim2.new(1, 0, 0, 30)
+		TabButton.Size = UDim2.new(1, 0, 0, 28)
 		TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-		TabButton.BackgroundTransparency = 1
+		TabButton.BackgroundColor3 = Color3.fromRGB(40, 60, 100) -- тёмно-синий фон как на фото
+		TabButton.BackgroundTransparency = 0.3
+		TabButton.BorderSizePixel = 0
 		TabButton.Visible = true
 		TabButton.Parent = SideBar
 		Config.Button = TabButton
+
+		--// Скруглённые углы у кнопки
+		local BtnCorner = Instance.new("UICorner")
+		BtnCorner.CornerRadius = UDim.new(0, 4)
+		BtnCorner.Parent = TabButton
 
 		--// Контент вкладки — занимает правую часть Body
 		local SideWidth = HasTabs and SideBarWidth or 0
